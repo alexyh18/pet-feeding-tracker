@@ -3,15 +3,37 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Paw print -->
-    <path android:fillColor="#FF87A3"
-        android:pathData="M54,58m-13,0a13,13 0,1 1,26 0a13,13 0,1 1,-26 0" />
-    <path android:fillColor="#FF87A3"
-        android:pathData="M38,40m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
-    <path android:fillColor="#FF87A3"
-        android:pathData="M70,40m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
-    <path android:fillColor="#FF87A3"
-        android:pathData="M28,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
-    <path android:fillColor="#FF87A3"
-        android:pathData="M80,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <!-- Lizard / crested gecko silhouette, kept within the ~66dp safe zone (center) -->
+    <group android:name="gecko" android:pivotX="54" android:pivotY="54">
+
+        <!-- Curved tail -->
+        <path android:fillColor="#FF87A3"
+            android:pathData="M54,70 C60,78 70,80 76,74 C82,68 80,58 73,56 C78,62 76,70 70,72 C64,74 58,70 54,66 Z" />
+
+        <!-- Body -->
+        <path android:fillColor="#FF87A3"
+            android:pathData="M54,34 C62,34 67,42 67,52 C67,62 62,70 54,70 C46,70 41,62 41,52 C41,42 46,34 54,34 Z" />
+
+        <!-- Head -->
+        <path android:fillColor="#FF87A3"
+            android:pathData="M54,26 C60,26 64,30 64,36 C64,41 59,44 54,44 C49,44 44,41 44,36 C44,30 48,26 54,26 Z" />
+
+        <!-- Eyes -->
+        <path android:fillColor="#FFFDF9"
+            android:pathData="M50,34m-2.4,0a2.4,2.4 0,1 1,4.8 0a2.4,2.4 0,1 1,-4.8 0" />
+        <path android:fillColor="#FFFDF9"
+            android:pathData="M58,34m-2.4,0a2.4,2.4 0,1 1,4.8 0a2.4,2.4 0,1 1,-4.8 0" />
+
+        <!-- Front legs -->
+        <path android:fillColor="#FF87A3"
+            android:pathData="M44,46 C38,44 32,46 29,51 C33,50 38,51 42,53 Z" />
+        <path android:fillColor="#FF87A3"
+            android:pathData="M64,46 C70,44 76,46 79,51 C75,50 70,51 66,53 Z" />
+
+        <!-- Back legs -->
+        <path android:fillColor="#FF87A3"
+            android:pathData="M44,60 C38,60 32,63 30,69 C35,66 40,66 44,67 Z" />
+        <path android:fillColor="#FF87A3"
+            android:pathData="M64,60 C70,60 76,63 78,69 C73,66 68,66 64,67 Z" />
+    </group>
 </vector>

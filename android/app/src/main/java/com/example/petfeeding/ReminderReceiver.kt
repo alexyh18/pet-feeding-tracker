@@ -57,7 +57,7 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("🐾 Time to feed ${pet.icon} ${pet.name}")
+            .setContentTitle("Time to feed ${pet.icon} ${pet.name}")
             .setContentText("${pet.name} is due for a feeding today.")
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

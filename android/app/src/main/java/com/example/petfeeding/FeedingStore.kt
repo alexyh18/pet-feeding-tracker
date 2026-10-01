@@ -23,13 +23,16 @@ object FeedingStore {
     private const val PREFS = "pet_feeding_prefs"
     private const val KEY_PETS = "pets_json"
 
-    /** Selectable pet icons (emoji). Includes lizard and snake as requested. */
-    val ICON_CHOICES = listOf(
-        "🐶", "🐱", "🐰", "🐹", "🦎", "🐍",
-        "🐦", "🐠", "🐢", "🐷", "🐸", "🐔"
-    )
+    /**
+     * Selectable pet icons. Only two species are supported:
+     * crested gecko (🦎) and hognose snake (🐍).
+     */
+    val ICON_CHOICES = listOf("🦎", "🐍")
 
-    private val DEFAULT_ICONS = listOf("🐶", "🐱", "🐰", "🐹", "🦎", "🐍", "🐢", "🐦")
+    /** Human-readable species labels, aligned with ICON_CHOICES. */
+    val ICON_LABELS = listOf("🦎  Crested Gecko", "🐍  Hognose Snake")
+
+    private val DEFAULT_ICONS = listOf("🦎", "🐍")
 
     data class Pet(
         val name: String,

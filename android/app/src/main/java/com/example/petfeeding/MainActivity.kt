@@ -100,11 +100,11 @@ class MainActivity : AppCompatActivity() {
 
         override fun onPickIcon(index: Int) {
             if (index == RecyclerView.NO_POSITION) return
-            val choices = FeedingStore.ICON_CHOICES.toTypedArray()
+            val labels = FeedingStore.ICON_LABELS.toTypedArray()
             AlertDialog.Builder(this@MainActivity)
-                .setTitle("Choose an icon")
-                .setItems(choices) { _, which ->
-                    FeedingStore.setIcon(this@MainActivity, index, choices[which])
+                .setTitle("Choose a species")
+                .setItems(labels) { _, which ->
+                    FeedingStore.setIcon(this@MainActivity, index, FeedingStore.ICON_CHOICES[which])
                     syncAll()
                 }
                 .setNegativeButton("Cancel", null)
