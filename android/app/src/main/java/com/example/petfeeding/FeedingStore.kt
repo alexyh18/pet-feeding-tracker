@@ -34,12 +34,28 @@ object FeedingStore {
 
     private val DEFAULT_ICONS = listOf("🦎", "🐍")
 
+    /** Distinct, pastel-ish colors used to tell pets apart on the calendars. */
+    val COLOR_PALETTE = listOf(
+        0xFF7FD1A8.toInt(), // mint
+        0xFFFF87A3.toInt(), // pink
+        0xFFF2B705.toInt(), // amber
+        0xFF6EC1E4.toInt(), // sky
+        0xFFB084E8.toInt(), // purple
+        0xFFF08A5D.toInt(), // coral
+        0xFF5AC8C8.toInt(), // teal
+        0xFFC0CA33.toInt()  // lime
+    )
+
+    fun defaultColor(index: Int): Int = COLOR_PALETTE[index % COLOR_PALETTE.size]
+
     data class Pet(
         val name: String,
         val history: List<Long>,
         val icon: String,
         /** Reminder interval in days. 0 = reminders off. */
-        val intervalDays: Int
+        val intervalDays: Int,
+        /** ARGB color used to represent this pet on the calendar. */
+        val color: Int
     ) {
         fun lastFed(): Long? = history.maxOrNull()
 
@@ -80,14 +96,17 @@ object FeedingStore {
                     val icon = (if (o.isNull("icon")) "" else o.optString("icon", ""))
                         .ifBlank { defaultIcon(i) }
                     val interval = o.optInt("intervalDays", 0).coerceAtLeast(0)
-                    pets.add(Pet(name, hist, icon, interval))
+                    val color = if (o.has("color") && !o.isNull("color"))
+                        o.optInt("color", defaultColor(i)) else defaultColor(i)
+                    pets.add(Pet(name, hist, icon, interval, color))
                 }
             } catch (_: Exception) {
                 pets.clear()
             }
         }
         // Always keep at least one pet.
-        if (pets.isEmpty()) pets.add(Pet(defaultName(0), emptyList(), defaultIcon(0), 0))
+        if (pets.isEmpty())
+            pets.add(Pet(defaultName(0), emptyList(), defaultIcon(0), 0, defaultColor(0)))
         return pets
     }
 
@@ -103,6 +122,7 @@ object FeedingStore {
             o.put("history", h)
             o.put("icon", p.icon)
             o.put("intervalDays", p.intervalDays)
+            o.put("color", p.color)
             arr.put(o)
         }
         prefs(context).edit().putString(KEY_PETS, arr.toString()).apply()
@@ -113,7 +133,7 @@ object FeedingStore {
         val pets = loadPets(context)
         if (pets.size >= MAX_PETS) return -1
         val i = pets.size
-        pets.add(Pet(defaultName(i), emptyList(), defaultIcon(i), 0))
+        pets.add(Pet(defaultName(i), emptyList(), defaultIcon(i), 0, defaultColor(i)))
         savePets(context, pets)
         return i
     }
@@ -189,6 +209,13 @@ object FeedingStore {
         savePets(context, pets)
     }
 
+    fun setColor(context: Context, index: Int, color: Int) {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return
+        pets[index] = pets[index].copy(color = color)
+        savePets(context, pets)
+    }
+
     fun defaultName(index: Int): String = "Pet ${index + 1}"
 
     fun defaultIcon(index: Int): String =
@@ -228,6 +255,23 @@ object FeedingStore {
     /** Icons of pets fed on a given day-start (for calendar day detail). */
     fun iconsFedOn(pets: List<Pet>, dayStart: Long): List<String> =
         pets.filter { p -> p.history.any { startOfDay(it) == dayStart } }.map { it.icon }
+
+    /**
+     * Colors (one per pet) that were fed on a given day, in pet order. Used to paint
+     * a calendar cell split into N equal stripes when several pets were fed that day.
+     */
+    fun colorsFedOn(pets: List<Pet>, dayStart: Long): List<Int> =
+        pets.filter { p -> p.history.any { startOfDay(it) == dayStart } }.map { it.color }
+
+    /** Map of day-start -> list of pet colors fed that day, across the whole list. */
+    fun colorsByDay(pets: List<Pet>): Map<Long, List<Int>> {
+        val map = HashMap<Long, MutableList<Int>>()
+        pets.forEach { p ->
+            val days = p.history.map { startOfDay(it) }.toSet()
+            days.forEach { d -> map.getOrPut(d) { mutableListOf() }.add(p.color) }
+        }
+        return map
+    }
 
     fun isSameDay(a: Long, b: Long): Boolean {
         val ca = Calendar.getInstance().apply { timeInMillis = a }

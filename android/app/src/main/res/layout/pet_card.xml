@@ -32,13 +32,13 @@
         android:text="🦎" android:textSize="34sp" android:gravity="center"
         android:background="?android:attr/selectableItemBackground" android:paddingVertical="2dp" />
 
-    <EditText android:id="@+id/name"
+    <TextView android:id="@+id/name"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:text="Pet" android:textColor="@color/text" android:textSize="17sp"
         android:textStyle="bold" android:gravity="center"
-        android:background="@android:color/transparent" android:maxLength="18"
-        android:inputType="text" android:imeOptions="actionDone"
-        android:autofillHints="" />
+        android:background="?android:attr/selectableItemBackground"
+        android:paddingVertical="4dp"
+        android:drawablePadding="4dp" />
 
     <Button android:id="@+id/feed"
         android:layout_width="match_parent" android:layout_height="wrap_content"

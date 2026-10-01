@@ -4,45 +4,55 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:orientation="vertical"
-    android:padding="6dp">
+    android:padding="4dp">
 
-    <TextView
-        android:id="@+id/wc_title"
+    <!-- Title row with month label and a refresh button -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📅 Feeding Calendar"
-        android:textColor="@color/pink_dark"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:paddingBottom="1dp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="4dp"
+        android:paddingBottom="2dp">
 
-    <TextView
-        android:id="@+id/wc_month"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Month"
-        android:textColor="@color/text"
-        android:textSize="10sp"
-        android:gravity="center"
-        android:paddingBottom="2dp" />
+        <TextView
+            android:id="@+id/wc_month"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📅 Month"
+            android:textColor="@color/pink_dark"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/wc_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔄"
+            android:textSize="14sp"
+            android:background="@drawable/hist_button"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp" />
+    </LinearLayout>
 
     <!-- Weekday header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="S" android:textSize="10sp" android:textColor="@color/text_soft" />
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="M" android:textSize="10sp" android:textColor="@color/text_soft" />
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="T" android:textSize="10sp" android:textColor="@color/text_soft" />
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="W" android:textSize="10sp" android:textColor="@color/text_soft" />
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="T" android:textSize="10sp" android:textColor="@color/text_soft" />
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="F" android:textSize="10sp" android:textColor="@color/text_soft" />
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="S" android:textSize="10sp" android:textColor="@color/text_soft" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="S" android:textSize="9sp" android:textColor="@color/text_soft" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="M" android:textSize="9sp" android:textColor="@color/text_soft" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="T" android:textSize="9sp" android:textColor="@color/text_soft" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="W" android:textSize="9sp" android:textColor="@color/text_soft" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="T" android:textSize="9sp" android:textColor="@color/text_soft" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="F" android:textSize="9sp" android:textColor="@color/text_soft" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="S" android:textSize="9sp" android:textColor="@color/text_soft" />
     </LinearLayout>
 
+    <!-- Calendar grid fills the remaining space -->
     <GridView
         android:id="@+id/wc_grid"
         android:layout_width="match_parent"
@@ -50,6 +60,7 @@
         android:layout_weight="1"
         android:numColumns="7"
         android:stretchMode="columnWidth"
-        android:verticalSpacing="2dp"
-        android:horizontalSpacing="2dp" />
+        android:gravity="fill"
+        android:verticalSpacing="1dp"
+        android:horizontalSpacing="1dp" />
 </LinearLayout>

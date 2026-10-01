@@ -111,11 +111,27 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        override fun onRename(index: Int, name: String) {
+        override fun onEditName(index: Int) {
             if (index == RecyclerView.NO_POSITION) return
-            FeedingStore.renamePet(this@MainActivity, index, name)
-            PetFeedingWidget.refreshAll(this@MainActivity)
-            CalendarWidget.refreshAll(this@MainActivity)
+            val pet = FeedingStore.loadPets(this@MainActivity).getOrNull(index) ?: return
+            val input = EditText(this@MainActivity).apply {
+                setText(pet.name)
+                hint = "Pet name"
+                setSingleLine()
+                setSelection(text.length)
+                setPadding(48, 32, 48, 32)
+                filters = arrayOf(android.text.InputFilter.LengthFilter(18))
+            }
+            AlertDialog.Builder(this@MainActivity)
+                .setTitle("Edit name")
+                .setView(input)
+                // Explicit "Done" (완료) button to save the name.
+                .setPositiveButton("완료") { _, _ ->
+                    FeedingStore.renamePet(this@MainActivity, index, input.text.toString())
+                    syncAll()
+                }
+                .setNegativeButton("취소", null)
+                .show()
         }
 
         override fun onHistory(index: Int) {

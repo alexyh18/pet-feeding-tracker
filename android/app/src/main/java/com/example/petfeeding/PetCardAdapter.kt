@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -20,7 +19,7 @@ class PetCardAdapter(
     interface Callbacks {
         fun onFeedToggle(index: Int)
         fun onPickIcon(index: Int)
-        fun onRename(index: Int, name: String)
+        fun onEditName(index: Int)
         fun onHistory(index: Int)
         fun onCalendar(index: Int)
         fun onSettings(index: Int)
@@ -65,7 +64,7 @@ class PetCardAdapter(
     inner class CardVH(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val root = itemView
         private val icon = itemView.findViewById<TextView>(R.id.icon)
-        private val name = itemView.findViewById<EditText>(R.id.name)
+        private val name = itemView.findViewById<TextView>(R.id.name)
         private val feed = itemView.findViewById<Button>(R.id.feed)
         private val last = itemView.findViewById<TextView>(R.id.last)
         private val interval = itemView.findViewById<TextView>(R.id.interval)
@@ -77,7 +76,10 @@ class PetCardAdapter(
 
         fun bind(pet: FeedingStore.Pet) {
             icon.text = pet.icon
-            if (name.text.toString() != pet.name) name.setText(pet.name)
+            name.text = pet.name
+            // A small colored dot in the pet's calendar color, to the left of the name.
+            name.setTextColor(0xFF5A4A52.toInt())
+            name.setCompoundDrawablesWithIntrinsicBounds(makeDot(pet.color), null, null, null)
 
             val lf = pet.lastFed()
             last.text = if (lf != null) "Last fed:\n${FeedingStore.formatFull(lf)}" else "Not fed yet"
@@ -99,17 +101,18 @@ class PetCardAdapter(
             calendar.setOnClickListener { callbacks.onCalendar(bindingAdapterPosition) }
             settings.setOnClickListener { callbacks.onSettings(bindingAdapterPosition) }
             delete.setOnClickListener { callbacks.onDelete(bindingAdapterPosition) }
-            name.setOnFocusChangeListener { _, hasFocus ->
-                val pos = bindingAdapterPosition
-                // Guard against a late focus-loss after a delete/reorder: only rename
-                // when the position is still valid AND the text actually changed. This
-                // avoids writing stale text onto whatever pet now occupies this slot.
-                if (!hasFocus && pos != RecyclerView.NO_POSITION && pos in pets.indices &&
-                    name.text.toString() != pets[pos].name
-                ) {
-                    callbacks.onRename(pos, name.text.toString())
-                }
+            name.setOnClickListener { callbacks.onEditName(bindingAdapterPosition) }
+        }
+
+        private fun makeDot(color: Int): android.graphics.drawable.Drawable {
+            val size = (12 * itemView.resources.displayMetrics.density).toInt()
+            val d = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(color)
+                setSize(size, size)
             }
+            d.setBounds(0, 0, size, size)
+            return d
         }
     }
 }

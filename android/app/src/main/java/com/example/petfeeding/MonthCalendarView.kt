@@ -1,7 +1,6 @@
 package com.example.petfeeding
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.Gravity
@@ -36,6 +35,7 @@ class MonthCalendarView @JvmOverloads constructor(
     private val month = Calendar.getInstance()
     private val monthLabel: TextView
     private val grid: GridLayout
+    private val legend: LinearLayout
 
     init {
         orientation = VERTICAL
@@ -77,13 +77,17 @@ class MonthCalendarView @JvmOverloads constructor(
         grid = GridLayout(context).apply { columnCount = 7 }
         addView(grid)
 
-        addView(TextView(context).apply {
-            text = "🟢 = fed that day · tap a green day for details"
-            textSize = 12f
-            setTextColor(ContextCompat.getColor(context, R.color.text_soft))
-            gravity = Gravity.CENTER
+        // Color legend (one swatch per pet). Horizontally scrollable for many pets.
+        legend = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val legendScroll = android.widget.HorizontalScrollView(context).apply {
+            isHorizontalScrollBarEnabled = false
             setPadding(0, dp(10), 0, 0)
-        })
+            addView(legend)
+        }
+        addView(legendScroll)
     }
 
     private fun navButton(label: String, onClick: () -> Unit) = Button(context).apply {
@@ -96,11 +100,15 @@ class MonthCalendarView @JvmOverloads constructor(
     /** Re-read data and redraw. Call when feedings change or the page becomes visible. */
     fun render() {
         val pets = FeedingStore.loadPets(context)
-        val fedDays: Set<Long> = if (petIndex == ALL) {
-            FeedingStore.allFedDayStarts(pets)
+
+        // For each day in the month, the list of pet-colors fed that day. In single-pet
+        // mode we only keep that one pet's color.
+        val colorsByDay: Map<Long, List<Int>> = if (petIndex == ALL) {
+            FeedingStore.colorsByDay(pets)
         } else {
             val idx = petIndex.coerceIn(0, pets.size - 1)
-            FeedingStore.fedDayStarts(pets[idx])
+            val pet = pets[idx]
+            FeedingStore.fedDayStarts(pet).associateWith { listOf(pet.color) }
         }
 
         monthLabel.text = android.text.format.DateFormat.format("MMMM yyyy", month)
@@ -119,9 +127,33 @@ class MonthCalendarView @JvmOverloads constructor(
             val cal = month.clone() as Calendar
             cal.set(Calendar.DAY_OF_MONTH, day)
             val dayStart = FeedingStore.startOfDay(cal.timeInMillis)
-            val fed = fedDays.contains(dayStart)
+            val dayColors = colorsByDay[dayStart] ?: emptyList()
             val isToday = FeedingStore.isSameDay(cal.timeInMillis, today.timeInMillis)
-            grid.addView(dayCell(day, fed, isToday, cell, dayStart))
+            grid.addView(dayCell(day, dayColors, isToday, cell, dayStart))
+        }
+
+        updateLegend(pets)
+    }
+
+    private fun updateLegend(pets: List<FeedingStore.Pet>) {
+        legend.removeAllViews()
+        legend.addView(TextView(context).apply {
+            text = "Fed: "
+            textSize = 11f
+            setTextColor(ContextCompat.getColor(context, R.color.text_soft))
+        })
+        val shown = if (petIndex == ALL) pets else listOf(pets[petIndex.coerceIn(0, pets.size - 1)])
+        shown.forEach { p ->
+            legend.addView(TextView(context).apply {
+                text = " ●"
+                textSize = 13f
+                setTextColor(p.color)
+            })
+            legend.addView(TextView(context).apply {
+                text = p.name + "  "
+                textSize = 11f
+                setTextColor(ContextCompat.getColor(context, R.color.text_soft))
+            })
         }
     }
 
@@ -132,25 +164,16 @@ class MonthCalendarView @JvmOverloads constructor(
         }
     }
 
-    private fun dayCell(day: Int, fed: Boolean, isToday: Boolean, size: Int, dayStart: Long): View {
-        return TextView(context).apply {
-            text = day.toString()
-            gravity = Gravity.CENTER
-            textSize = 14f
-            setTextColor(if (fed) Color.WHITE else ContextCompat.getColor(context, R.color.text))
-            setBackgroundResource(
-                when {
-                    fed -> R.drawable.calendar_day_fed
-                    isToday -> R.drawable.calendar_day_today
-                    else -> R.drawable.calendar_day
-                }
-            )
-            if (isToday) setTypeface(typeface, Typeface.BOLD)
+    private fun dayCell(day: Int, colors: List<Int>, isToday: Boolean, size: Int, dayStart: Long): View {
+        return DayCellView(context).apply {
+            this.day = day
+            this.colors = colors
+            this.isToday = isToday
             layoutParams = GridLayout.LayoutParams().apply {
                 width = size; height = size
                 setMargins(dp(2), dp(2), dp(2), dp(2))
             }
-            if (fed) setOnClickListener { showDay(dayStart) }
+            if (colors.isNotEmpty()) setOnClickListener { showDay(dayStart) }
         }
     }
 

@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/wc_cell"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:minHeight="22dp"
-    android:gravity="center"
-    android:textSize="10sp"
-    android:textColor="@color/text"
-    android:paddingVertical="2dp"
-    android:background="@drawable/calendar_day" />
+    android:layout_height="match_parent"
+    android:adjustViewBounds="false"
+    android:scaleType="fitXY"
+    android:contentDescription="day" />

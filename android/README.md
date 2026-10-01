@@ -9,6 +9,8 @@ A native Android (Kotlin) app to track pet feedings. Start with one pet and add 
 - **Start with one pet, add more** — begins with a single pet; tap **➕ Add a pet** (up to 8) or 🗑 to remove one (always keeps at least one)
 - Grid of pet cards (editable names)
 - **Species per pet** — tap the icon to choose between 🦎 Crested Gecko and 🐍 Hognose Snake
+- **Per-pet colors on the calendar** — each pet has its own color; a day fed by several pets splits that calendar cell into equal colored stripes
+- **Name editing with a Done button** — tap a pet's name to edit it in a dialog with a 완료 (Done) / 취소 (Cancel) button
 - Large **Feed** button with a confirmation dialog; **tap again to undo** today's feeding
 - **Last fed** time shown as `yyyy.MM.dd HH:mm`
 - **Fed Today** visual feedback — card turns soft mint green + a "✓ Fed Today" badge
@@ -19,7 +21,7 @@ A native Android (Kotlin) app to track pet feedings. Start with one pet and add 
 ### Home Screen Widgets
 Two widgets are available (long-press home screen → Widgets → "피딩계산기"):
 1. **Pet list widget** — every pet in a scrolling list with a Feed button (tap to log, tap again to undo), icon, and a short last-fed label. Fed-today rows turn green. Adapts automatically as you add/remove pets.
-2. **Calendar widget** — the current month as a grid, highlighting every day any pet was fed (green) and today (outlined). Tap the title to open the app's Calendar page.
+2. **Calendar widget** — the current month as a grid that fills the widget. Each day shows the colors of the pets fed that day (split into equal stripes when several were fed) and today is outlined. A 🔄 button refreshes it on demand; tap the month label to open the app's Calendar page.
 
 ### Pet list widget details
 - One row per pet with:
