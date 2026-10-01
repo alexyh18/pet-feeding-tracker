@@ -8,7 +8,7 @@ A native Android (Kotlin) app to track pet feedings. Start with one pet and add 
 - **Swipeable pages** — the main screen has two pages: **Pets** and a combined **Calendar** (swipe left/right)
 - **Start with one pet, add more** — begins with a single pet; tap **➕ Add a pet** (up to 8) or 🗑 to remove one (always keeps at least one)
 - Grid of pet cards (editable names)
-- **Species per pet** — tap the icon to choose between 🦎 Crested Gecko and 🐍 Hognose Snake
+- **Species per pet** — tap the icon to choose between 🦎 Gecko, 🐍 Snake, and 🐊 Lizard
 - **Per-pet colors on the calendar** — each pet has its own color; a day fed by several pets splits that calendar cell into equal colored stripes
 - **Name editing with a Done button** — tap a pet's name to edit it in a dialog with a 완료 (Done) / 취소 (Cancel) button
 - Large **Feed** button with a confirmation dialog; **tap again to undo** today's feeding

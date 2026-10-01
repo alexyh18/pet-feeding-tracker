@@ -24,15 +24,14 @@ object FeedingStore {
     private const val KEY_PETS = "pets_json"
 
     /**
-     * Selectable pet icons. Only two species are supported:
-     * crested gecko (🦎) and hognose snake (🐍).
+     * Selectable pet icons / species: gecko (🦎), snake (🐍) and lizard (🐊).
      */
-    val ICON_CHOICES = listOf("🦎", "🐍")
+    val ICON_CHOICES = listOf("🦎", "🐍", "🐊")
 
     /** Human-readable species labels, aligned with ICON_CHOICES. */
-    val ICON_LABELS = listOf("🦎  Crested Gecko", "🐍  Hognose Snake")
+    val ICON_LABELS = listOf("🦎  Gecko", "🐍  Snake", "🐊  Lizard")
 
-    private val DEFAULT_ICONS = listOf("🦎", "🐍")
+    private val DEFAULT_ICONS = listOf("🦎", "🐍", "🐊")
 
     /** Distinct, pastel-ish colors used to tell pets apart on the calendars. */
     val COLOR_PALETTE = listOf(
