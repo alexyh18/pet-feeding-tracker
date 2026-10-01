@@ -90,7 +90,7 @@ class PetCardAdapter(
             feed.text = if (fedToday) "✓ Fed — tap to undo"
                 else feed.context.getString(R.string.feed)
 
-            hist.text = "📖 ${pet.history.size}"
+            hist.text = "📖"
             interval.text = if (pet.intervalDays > 0) "Reminder: every ${pet.intervalDays}d"
                 else "Reminder: off"
             delete.visibility = if (callbacks.canDelete()) View.VISIBLE else View.INVISIBLE
