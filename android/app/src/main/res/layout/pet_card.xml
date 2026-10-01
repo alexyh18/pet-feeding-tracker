@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Reusable pet card, used as a RecyclerView item on the Pets page. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/card_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="7dp"
+    android:background="@drawable/card_bg"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/delete"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="🗑" android:textSize="14sp"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="6dp" android:paddingVertical="2dp" />
+        <View android:layout_width="0dp" android:layout_height="1dp"
+            android:layout_weight="1" />
+        <TextView android:id="@+id/badge"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/fed_today"
+            android:textColor="@color/white" android:textSize="10sp" android:textStyle="bold"
+            android:background="@drawable/badge_bg" android:paddingHorizontal="9dp"
+            android:paddingVertical="4dp" android:visibility="gone" />
+    </LinearLayout>
+
+    <TextView android:id="@+id/icon"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="🦎" android:textSize="34sp" android:gravity="center"
+        android:background="?android:attr/selectableItemBackground" android:paddingVertical="2dp" />
+
+    <TextView android:id="@+id/name"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="Pet" android:textColor="@color/text" android:textSize="17sp"
+        android:textStyle="bold" android:gravity="center"
+        android:background="?android:attr/selectableItemBackground"
+        android:paddingVertical="4dp"
+        android:drawablePadding="4dp" />
+
+    <Button android:id="@+id/feed"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="@string/feed" android:textColor="@color/white" android:textSize="16sp"
+        android:textStyle="bold" android:background="@drawable/feed_button"
+        android:layout_marginTop="6dp" android:paddingVertical="14dp" />
+
+    <TextView android:id="@+id/last"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="Not fed yet" android:textColor="@color/text_soft" android:textSize="12sp"
+        android:gravity="center" android:layout_marginTop="8dp" android:minLines="2" />
+
+    <TextView android:id="@+id/interval"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="Reminder: off" android:textColor="@color/pink_dark" android:textSize="11sp"
+        android:gravity="center" android:layout_marginTop="2dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:layout_marginTop="6dp">
+        <Button android:id="@+id/hist"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="📖" android:textColor="@color/pink_dark"
+            android:textSize="15sp" android:background="@drawable/hist_button"
+            android:paddingVertical="8dp" android:paddingHorizontal="2dp"
+            android:minWidth="0dp" android:minHeight="0dp"
+            android:maxLines="1"
+            android:layout_marginEnd="4dp" />
+        <Button android:id="@+id/calendar"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="📅" android:textColor="@color/pink_dark"
+            android:textSize="15sp" android:background="@drawable/hist_button"
+            android:paddingVertical="8dp" android:paddingHorizontal="2dp"
+            android:minWidth="0dp" android:minHeight="0dp"
+            android:maxLines="1"
+            android:layout_marginEnd="4dp" />
+        <Button android:id="@+id/settings"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="⏰" android:textColor="@color/pink_dark"
+            android:textSize="15sp" android:background="@drawable/hist_button"
+            android:paddingVertical="8dp" android:paddingHorizontal="2dp"
+            android:minWidth="0dp" android:minHeight="0dp"
+            android:maxLines="1" />
+    </LinearLayout>
+</LinearLayout>
