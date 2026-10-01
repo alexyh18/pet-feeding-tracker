@@ -3,9 +3,9 @@
     android:id="@+id/wc_cell"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="28dp"
+    android:minHeight="22dp"
     android:gravity="center"
-    android:textSize="11sp"
+    android:textSize="10sp"
     android:textColor="@color/text"
-    android:paddingVertical="4dp"
+    android:paddingVertical="2dp"
     android:background="@drawable/calendar_day" />

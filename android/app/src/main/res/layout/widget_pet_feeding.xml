@@ -4,17 +4,19 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="6dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/widget_title"
         android:textColor="@color/pink_dark"
-        android:textSize="14sp"
+        android:textSize="12sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:paddingBottom="6dp" />
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:paddingBottom="4dp" />
 
     <ListView
         android:id="@+id/w_list"
