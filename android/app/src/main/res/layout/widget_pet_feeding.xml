@@ -25,7 +25,8 @@
             android:layout_weight="1" android:orientation="vertical">
             <TextView android:id="@+id/w_name_0" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:text="Pet 1"
-                android:textColor="@color/text" android:textSize="14sp" android:textStyle="bold" />
+                android:textColor="@color/text" android:textSize="14sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" />
             <TextView android:id="@+id/w_status_0" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:text="Not fed yet"
                 android:textColor="@color/text_soft" android:textSize="11sp" />
@@ -46,7 +47,8 @@
             android:layout_weight="1" android:orientation="vertical">
             <TextView android:id="@+id/w_name_1" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:text="Pet 2"
-                android:textColor="@color/text" android:textSize="14sp" android:textStyle="bold" />
+                android:textColor="@color/text" android:textSize="14sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" />
             <TextView android:id="@+id/w_status_1" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:text="Not fed yet"
                 android:textColor="@color/text_soft" android:textSize="11sp" />
@@ -67,7 +69,8 @@
             android:layout_weight="1" android:orientation="vertical">
             <TextView android:id="@+id/w_name_2" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:text="Pet 3"
-                android:textColor="@color/text" android:textSize="14sp" android:textStyle="bold" />
+                android:textColor="@color/text" android:textSize="14sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" />
             <TextView android:id="@+id/w_status_2" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:text="Not fed yet"
                 android:textColor="@color/text_soft" android:textSize="11sp" />
@@ -88,7 +91,8 @@
             android:layout_weight="1" android:orientation="vertical">
             <TextView android:id="@+id/w_name_3" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:text="Pet 4"
-                android:textColor="@color/text" android:textSize="14sp" android:textStyle="bold" />
+                android:textColor="@color/text" android:textSize="14sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" />
             <TextView android:id="@+id/w_status_3" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:text="Not fed yet"
                 android:textColor="@color/text_soft" android:textSize="11sp" />

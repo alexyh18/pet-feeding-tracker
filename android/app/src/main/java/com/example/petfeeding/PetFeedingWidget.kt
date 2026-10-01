@@ -35,7 +35,9 @@ class PetFeedingWidget : AppWidgetProvider() {
         if (intent.action == ACTION_FEED) {
             val index = intent.getIntExtra(EXTRA_PET_INDEX, -1)
             if (index in 0 until FeedingStore.PET_COUNT) {
-                FeedingStore.recordFeeding(context, index)
+                // Tap toggles today's feeding: records if not fed, cancels if already fed.
+                FeedingStore.toggleTodayFeeding(context, index)
+                ReminderScheduler.scheduleNext(context)
                 refreshAll(context)
             }
         }
@@ -73,7 +75,7 @@ class PetFeedingWidget : AppWidgetProvider() {
 
             for (i in 0 until FeedingStore.PET_COUNT) {
                 val pet = pets[i]
-                views.setTextViewText(NAME_IDS[i], pet.name)
+                views.setTextViewText(NAME_IDS[i], "${pet.icon} ${pet.name}")
                 views.setTextViewText(STATUS_IDS[i], FeedingStore.formatShort(pet.lastFed()))
 
                 // Highlight rows fed today with a soft green background.

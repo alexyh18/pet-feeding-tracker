@@ -6,16 +6,20 @@ A native Android (Kotlin) app to track feedings for up to **4 pets**, with a **h
 
 ### App
 - 2×2 grid of pet cards (editable names, defaults Pet 1–4)
-- Large **Feed** button with a confirmation dialog ("Did you just feed …?")
+- **Customizable icon** per pet — tap the icon to pick one (includes 🦎 lizard and 🐍 snake, plus 🐶🐱🐰🐹🐦🐠🐢🐷🐸🐔)
+- Large **Feed** button with a confirmation dialog; **tap again to undo** today's feeding
 - **Last fed** time shown as `yyyy.MM.dd HH:mm`
 - **Fed Today** visual feedback — card turns soft mint green + a "✓ Fed Today" badge
-- **View History** dialog listing all feeding timestamps for a pet
+- **History** dialog listing all feeding timestamps for a pet
+- **📅 Calendar** view per pet — a month grid that highlights the days it was fed; tap a day to view or cancel a logged feeding
+- **⏰ Reminders** — set a feeding interval (in days) per pet; when a feeding is due you get a notification. Uses battery-friendly inexact alarms (no special permission needed) and re-arms after reboot.
 
 ### Home Screen Widget
 - One row per pet with:
   - the pet's name
   - a short **last-fed label** (e.g. `Today 14:20`, `Yesterday 09:05`, `09.28 18:40`, or `Not fed yet`)
-  - a **Feed** button that records a feeding instantly via a broadcast `PendingIntent` — no app launch
+  - a **Feed** button that records a feeding instantly via a broadcast `PendingIntent` — no app launch (tap again to undo today's feeding)
+- the pet's custom icon shown next to its name
 - Rows fed today are highlighted in soft green
 - The widget and the app share the same data, so changes in one appear in the other
 

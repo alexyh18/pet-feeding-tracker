@@ -21,9 +21,21 @@ object FeedingStore {
     private const val PREFS = "pet_feeding_prefs"
     private const val KEY_PETS = "pets_json"
 
+    /** Selectable pet icons (emoji). Includes lizard and snake as requested. */
+    val ICON_CHOICES = listOf(
+        "🐶", "🐱", "🐰", "🐹", "🦎", "🐍",
+        "🐦", "🐠", "🐢", "🐷", "🐸", "🐔"
+    )
+
+    /** Default icon per slot. */
+    private val DEFAULT_ICONS = listOf("🐶", "🐱", "🐰", "🐹")
+
     data class Pet(
         val name: String,
-        val history: List<Long>
+        val history: List<Long>,
+        val icon: String,
+        /** Reminder interval in days. 0 = reminders off. */
+        val intervalDays: Int
     ) {
         fun lastFed(): Long? = history.maxOrNull()
 
@@ -31,7 +43,19 @@ object FeedingStore {
             val now = Calendar.getInstance()
             return history.any { isSameDay(it, now.timeInMillis) }
         }
+
+        /**
+         * When the next feeding is due, in millis, based on the last feeding and the
+         * interval. null when reminders are off or there is no history yet.
+         */
+        fun nextDueMillis(): Long? {
+            if (intervalDays <= 0) return null
+            val last = lastFed() ?: return null
+            return startOfDay(last) + intervalDays.toLong() * DAY_MS
+        }
     }
+
+    private const val DAY_MS = 24L * 60 * 60 * 1000
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -49,14 +73,20 @@ object FeedingStore {
                     val histArr = o.optJSONArray("history") ?: JSONArray()
                     val hist = ArrayList<Long>(histArr.length())
                     for (j in 0 until histArr.length()) hist.add(histArr.getLong(j))
-                    pets.add(Pet(name, hist))
+                    val icon = (if (o.isNull("icon")) "" else o.optString("icon", ""))
+                        .ifBlank { defaultIcon(i) }
+                    val interval = o.optInt("intervalDays", 0).coerceAtLeast(0)
+                    pets.add(Pet(name, hist, icon, interval))
                 }
             } catch (_: Exception) {
                 pets.clear()
             }
         }
         // Normalize to exactly PET_COUNT pets
-        while (pets.size < PET_COUNT) pets.add(Pet(defaultName(pets.size), emptyList()))
+        while (pets.size < PET_COUNT) {
+            val i = pets.size
+            pets.add(Pet(defaultName(i), emptyList(), defaultIcon(i), 0))
+        }
         return pets.subList(0, PET_COUNT).toMutableList()
     }
 
@@ -68,6 +98,8 @@ object FeedingStore {
             val h = JSONArray()
             p.history.forEach { h.put(it) }
             o.put("history", h)
+            o.put("icon", p.icon)
+            o.put("intervalDays", p.intervalDays)
             arr.put(o)
         }
         prefs(context).edit().putString(KEY_PETS, arr.toString()).apply()
@@ -82,6 +114,38 @@ object FeedingStore {
         savePets(context, pets)
     }
 
+    /**
+     * Toggle today's feeding: if the pet was already fed today, remove ALL of today's
+     * entries (cancel); otherwise record a feeding now.
+     *
+     * @return true if a feeding was recorded, false if today's feeding was cancelled.
+     */
+    fun toggleTodayFeeding(context: Context, index: Int): Boolean {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return false
+        val p = pets[index]
+        val now = System.currentTimeMillis()
+        return if (p.fedToday()) {
+            val filtered = p.history.filterNot { isSameDay(it, now) }
+            pets[index] = p.copy(history = filtered)
+            savePets(context, pets)
+            false
+        } else {
+            pets[index] = p.copy(history = p.history + now)
+            savePets(context, pets)
+            true
+        }
+    }
+
+    /** Remove a single feeding timestamp (used by the history/calendar views). */
+    fun removeFeeding(context: Context, index: Int, timeMillis: Long) {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return
+        val p = pets[index]
+        pets[index] = p.copy(history = p.history.filterNot { it == timeMillis })
+        savePets(context, pets)
+    }
+
     fun renamePet(context: Context, index: Int, name: String) {
         val pets = loadPets(context)
         if (index !in pets.indices) return
@@ -90,13 +154,33 @@ object FeedingStore {
         savePets(context, pets)
     }
 
+    fun setIcon(context: Context, index: Int, icon: String) {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return
+        pets[index] = pets[index].copy(icon = icon)
+        savePets(context, pets)
+    }
+
+    fun setInterval(context: Context, index: Int, days: Int) {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return
+        pets[index] = pets[index].copy(intervalDays = days.coerceAtLeast(0))
+        savePets(context, pets)
+    }
+
     fun defaultName(index: Int): String = "Pet ${index + 1}"
+
+    fun defaultIcon(index: Int): String =
+        DEFAULT_ICONS.getOrElse(index) { ICON_CHOICES[index % ICON_CHOICES.size] }
+
+    // ---- Date formatting / helpers ----
 
     private val fullFormat = SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.getDefault())
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private val dateFormat = SimpleDateFormat("MM.dd", Locale.getDefault())
 
     fun formatFull(ts: Long): String = fullFormat.format(Date(ts))
+    fun formatTime(ts: Long): String = timeFormat.format(Date(ts))
 
     /**
      * Short label for the widget, e.g. "Today 14:20", "Yesterday 09:05", "09.28 18:40",
@@ -112,7 +196,11 @@ object FeedingStore {
         }
     }
 
-    private fun isSameDay(a: Long, b: Long): Boolean {
+    /** Set of day-start millis for every day that has at least one feeding. */
+    fun fedDayStarts(pet: Pet): Set<Long> =
+        pet.history.map { startOfDay(it) }.toSet()
+
+    fun isSameDay(a: Long, b: Long): Boolean {
         val ca = Calendar.getInstance().apply { timeInMillis = a }
         val cb = Calendar.getInstance().apply { timeInMillis = b }
         return ca.get(Calendar.YEAR) == cb.get(Calendar.YEAR) &&
@@ -125,5 +213,16 @@ object FeedingStore {
             add(Calendar.DAY_OF_YEAR, -1)
         }
         return isSameDay(a, cb.timeInMillis)
+    }
+
+    fun startOfDay(ts: Long): Long {
+        val c = Calendar.getInstance().apply {
+            timeInMillis = ts
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return c.timeInMillis
     }
 }
