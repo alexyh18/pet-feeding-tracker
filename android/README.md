@@ -41,6 +41,14 @@ cd android
 ./gradlew installDebug
 ```
 
+**Option C — Build in the cloud (no local setup)**
+
+A GitHub Actions workflow (`.github/workflows/android-build.yml`) builds a debug APK automatically:
+1. Go to the repo's **Actions** tab → **Android Build**.
+2. It runs on every push/PR touching `android/` — or click **Run workflow** to trigger it manually.
+3. When it finishes (green ✓), open the run and download the **`pet-feeding-tracker-debug-apk`** artifact (a zip containing `app-debug.apk`).
+4. Transfer the APK to your Android phone and install it (you may need to allow "Install unknown apps").
+
 ## Requirements
 - Android Studio / Android SDK with API 34
 - `minSdk` 24 (Android 7.0+), `targetSdk` 34
