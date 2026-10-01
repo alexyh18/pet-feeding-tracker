@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Did They Eat Today?</string>
+    <string name="header">🐾 Did They Eat Today?</string>
+    <string name="widget_title">🐾 Pet Feeding</string>
+    <string name="feed">🍽️ Feed</string>
+    <string name="fed_today">✓ Fed Today</string>
+</resources>
