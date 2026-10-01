@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/widget_row_bg"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="8dp"
+    android:layout_marginBottom="6dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+        <TextView android:id="@+id/w_name"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Pet" android:textColor="@color/text" android:textSize="14sp"
+            android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+        <TextView android:id="@+id/w_status"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Not fed yet" android:textColor="@color/text_soft" android:textSize="11sp" />
+    </LinearLayout>
+
+    <Button android:id="@+id/w_feed"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="@string/feed" android:textColor="@color/white" android:textSize="12sp"
+        android:textStyle="bold" android:background="@drawable/widget_feed_button"
+        android:minWidth="0dp" android:minHeight="0dp"
+        android:paddingHorizontal="12dp" android:paddingVertical="8dp" />
+</LinearLayout>

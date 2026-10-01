@@ -9,15 +9,17 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Shared persistence layer used by BOTH the main app UI and the home-screen widget.
+ * Shared persistence layer used by the main app UI and the home-screen widgets.
  *
- * Data is stored in a single SharedPreferences file as a JSON array of pets, so the
- * Activity and the AppWidgetProvider always read/write the same source of truth.
- * Data survives app close and device reboot.
+ * Pets are stored as a JSON array in a single SharedPreferences file, so the
+ * Activity and the AppWidgetProviders always read/write the same source of truth.
+ * The list is variable length: it starts with one pet and the user can add more
+ * (up to MAX_PETS) or remove them (never below one). Data survives app close and
+ * device reboot.
  */
 object FeedingStore {
 
-    const val PET_COUNT = 4
+    const val MAX_PETS = 8
     private const val PREFS = "pet_feeding_prefs"
     private const val KEY_PETS = "pets_json"
 
@@ -27,8 +29,7 @@ object FeedingStore {
         "🐦", "🐠", "🐢", "🐷", "🐸", "🐔"
     )
 
-    /** Default icon per slot. */
-    private val DEFAULT_ICONS = listOf("🐶", "🐱", "🐰", "🐹")
+    private val DEFAULT_ICONS = listOf("🐶", "🐱", "🐰", "🐹", "🦎", "🐍", "🐢", "🐦")
 
     data class Pet(
         val name: String,
@@ -66,7 +67,7 @@ object FeedingStore {
         if (raw != null) {
             try {
                 val arr = JSONArray(raw)
-                for (i in 0 until minOf(arr.length(), PET_COUNT)) {
+                for (i in 0 until minOf(arr.length(), MAX_PETS)) {
                     val o = arr.getJSONObject(i)
                     val name = (if (o.isNull("name")) "" else o.optString("name", ""))
                         .ifBlank { defaultName(i) }
@@ -82,13 +83,12 @@ object FeedingStore {
                 pets.clear()
             }
         }
-        // Normalize to exactly PET_COUNT pets
-        while (pets.size < PET_COUNT) {
-            val i = pets.size
-            pets.add(Pet(defaultName(i), emptyList(), defaultIcon(i), 0))
-        }
-        return pets.subList(0, PET_COUNT).toMutableList()
+        // Always keep at least one pet.
+        if (pets.isEmpty()) pets.add(Pet(defaultName(0), emptyList(), defaultIcon(0), 0))
+        return pets
     }
+
+    fun petCount(context: Context): Int = loadPets(context).size
 
     private fun savePets(context: Context, pets: List<Pet>) {
         val arr = JSONArray()
@@ -103,6 +103,24 @@ object FeedingStore {
             arr.put(o)
         }
         prefs(context).edit().putString(KEY_PETS, arr.toString()).apply()
+    }
+
+    /** Add a new pet with sensible defaults. No-op at MAX_PETS. Returns new index or -1. */
+    fun addPet(context: Context): Int {
+        val pets = loadPets(context)
+        if (pets.size >= MAX_PETS) return -1
+        val i = pets.size
+        pets.add(Pet(defaultName(i), emptyList(), defaultIcon(i), 0))
+        savePets(context, pets)
+        return i
+    }
+
+    /** Remove a pet. Keeps at least one pet. */
+    fun removePet(context: Context, index: Int) {
+        val pets = loadPets(context)
+        if (pets.size <= 1 || index !in pets.indices) return
+        pets.removeAt(index)
+        savePets(context, pets)
     }
 
     /** Append the current time to a pet's feeding history and persist. */
@@ -196,9 +214,17 @@ object FeedingStore {
         }
     }
 
-    /** Set of day-start millis for every day that has at least one feeding. */
+    /** Set of day-start millis for every day THIS pet has at least one feeding. */
     fun fedDayStarts(pet: Pet): Set<Long> =
         pet.history.map { startOfDay(it) }.toSet()
+
+    /** Set of day-start millis where ANY pet was fed (for the combined calendar). */
+    fun allFedDayStarts(pets: List<Pet>): Set<Long> =
+        pets.flatMap { it.history }.map { startOfDay(it) }.toSet()
+
+    /** Icons of pets fed on a given day-start (for calendar day detail). */
+    fun iconsFedOn(pets: List<Pet>, dayStart: Long): List<String> =
+        pets.filter { p -> p.history.any { startOfDay(it) == dayStart } }.map { it.icon }
 
     fun isSameDay(a: Long, b: Long): Boolean {
         val ca = Calendar.getInstance().apply { timeInMillis = a }

@@ -1,61 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg"
-    android:fillViewport="true">
+    android:orientation="vertical">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="14dp">
+        android:text="@string/header"
+        android:textColor="@color/pink_dark"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingTop="16dp"
+        android:paddingBottom="2dp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/header"
-            android:textColor="@color/pink_dark"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:paddingTop="10dp"
-            android:paddingBottom="4dp" />
+    <TextView
+        android:id="@+id/page_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="● Pets    ○ Calendar  ·  swipe →"
+        android:textColor="@color/text_soft"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:paddingBottom="8dp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Tap the icon to change it · tap a name to rename · tap Feed again to undo"
-            android:textColor="@color/text_soft"
-            android:textSize="12sp"
-            android:gravity="center"
-            android:paddingBottom="14dp" />
-
-        <!-- Row 1 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <include layout="@layout/pet_card" android:id="@+id/wrap_0"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" />
-            <include layout="@layout/pet_card" android:id="@+id/wrap_1"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" />
-        </LinearLayout>
-
-        <!-- Row 2 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <include layout="@layout/pet_card" android:id="@+id/wrap_2"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" />
-            <include layout="@layout/pet_card" android:id="@+id/wrap_3"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" />
-        </LinearLayout>
-
-    </LinearLayout>
-</ScrollView>
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

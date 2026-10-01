@@ -31,7 +31,7 @@
             android:exported="false"
             android:theme="@style/Theme.PetFeeding" />
 
-        <!-- Home screen widget -->
+        <!-- Home screen widget: list of pets with Feed buttons -->
         <receiver
             android:name=".PetFeedingWidget"
             android:exported="true">
@@ -44,6 +44,28 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/pet_feeding_widget_info" />
         </receiver>
+
+        <!-- Home screen widget: monthly feeding calendar -->
+        <receiver
+            android:name=".CalendarWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/calendar_widget_info" />
+        </receiver>
+
+        <!-- Collection services backing the two widgets -->
+        <service
+            android:name=".PetListWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+        <service
+            android:name=".CalendarWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
 
         <!-- Reminder check alarm receiver -->
         <receiver

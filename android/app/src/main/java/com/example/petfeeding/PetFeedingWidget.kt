@@ -6,17 +6,18 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.widget.RemoteViews
 
 /**
- * Home-screen widget showing all 4 pets. Each row has:
- *   - the pet's name
- *   - a short "last fed" label (e.g. "Today 14:20")
- *   - a Feed button that records a feeding WITHOUT opening the app
+ * Home-screen widget listing all pets (variable count) in a ListView. Each row shows
+ * the pet's icon + name and a short "last fed" label, with a Feed button that toggles
+ * today's feeding WITHOUT opening the app.
  *
- * The Feed buttons use broadcast PendingIntents back to this provider; onReceive
- * records the feeding via FeedingStore and refreshes every widget instance.
+ * Uses a collection (ListView) backed by PetListWidgetService. Feed taps arrive as a
+ * fill-in intent merged into the template broadcast PendingIntent set here; onReceive
+ * records/cancels the feeding and refreshes.
  */
 class PetFeedingWidget : AppWidgetProvider() {
 
@@ -25,17 +26,14 @@ class PetFeedingWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        appWidgetIds.forEach { id ->
-            appWidgetManager.updateAppWidget(id, buildViews(context))
-        }
+        appWidgetIds.forEach { id -> updateWidget(context, appWidgetManager, id) }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_FEED) {
             val index = intent.getIntExtra(EXTRA_PET_INDEX, -1)
-            if (index in 0 until FeedingStore.PET_COUNT) {
-                // Tap toggles today's feeding: records if not fed, cancels if already fed.
+            if (index >= 0 && index < FeedingStore.petCount(context)) {
                 FeedingStore.toggleTodayFeeding(context, index)
                 ReminderScheduler.scheduleNext(context)
                 refreshAll(context)
@@ -47,61 +45,38 @@ class PetFeedingWidget : AppWidgetProvider() {
         const val ACTION_FEED = "com.example.petfeeding.ACTION_FEED"
         const val EXTRA_PET_INDEX = "pet_index"
 
-        private val NAME_IDS = intArrayOf(
-            R.id.w_name_0, R.id.w_name_1, R.id.w_name_2, R.id.w_name_3
-        )
-        private val STATUS_IDS = intArrayOf(
-            R.id.w_status_0, R.id.w_status_1, R.id.w_status_2, R.id.w_status_3
-        )
-        private val BUTTON_IDS = intArrayOf(
-            R.id.w_feed_0, R.id.w_feed_1, R.id.w_feed_2, R.id.w_feed_3
-        )
-        private val ROW_IDS = intArrayOf(
-            R.id.w_row_0, R.id.w_row_1, R.id.w_row_2, R.id.w_row_3
-        )
-
-        /** Refresh every instance of this widget on the home screen. */
         fun refreshAll(context: Context) {
             val mgr = AppWidgetManager.getInstance(context)
-            val ids = mgr.getAppWidgetIds(
-                ComponentName(context, PetFeedingWidget::class.java)
-            )
-            ids.forEach { id -> mgr.updateAppWidget(id, buildViews(context)) }
+            val ids = mgr.getAppWidgetIds(ComponentName(context, PetFeedingWidget::class.java))
+            if (ids.isEmpty()) return
+            // Tell the ListView its data changed, then rebuild each instance.
+            mgr.notifyAppWidgetViewDataChanged(ids, R.id.w_list)
+            ids.forEach { id -> updateWidget(context, mgr, id) }
         }
 
-        private fun buildViews(context: Context): RemoteViews {
+        private fun updateWidget(context: Context, mgr: AppWidgetManager, id: Int) {
             val views = RemoteViews(context.packageName, R.layout.widget_pet_feeding)
-            val pets = FeedingStore.loadPets(context)
 
-            for (i in 0 until FeedingStore.PET_COUNT) {
-                val pet = pets[i]
-                views.setTextViewText(NAME_IDS[i], "${pet.icon} ${pet.name}")
-                views.setTextViewText(STATUS_IDS[i], FeedingStore.formatShort(pet.lastFed()))
-
-                // Highlight rows fed today with a soft green background.
-                views.setInt(
-                    ROW_IDS[i],
-                    "setBackgroundResource",
-                    if (pet.fedToday()) R.drawable.widget_row_fed else R.drawable.widget_row_bg
-                )
-
-                views.setOnClickPendingIntent(BUTTON_IDS[i], feedPendingIntent(context, i))
+            val serviceIntent = Intent(context, PetListWidgetService::class.java).apply {
+                data = Uri.parse("petfeeding://list/$id")
             }
-            return views
-        }
+            views.setRemoteAdapter(R.id.w_list, serviceIntent)
+            views.setEmptyView(R.id.w_list, R.id.w_empty)
 
-        private fun feedPendingIntent(context: Context, index: Int): PendingIntent {
-            val intent = Intent(context, PetFeedingWidget::class.java).apply {
+            // Template PendingIntent for the rows' Feed buttons.
+            val feedIntent = Intent(context, PetFeedingWidget::class.java).apply {
                 action = ACTION_FEED
-                putExtra(EXTRA_PET_INDEX, index)
-                // Unique data so each pet's PendingIntent is distinct.
-                data = android.net.Uri.parse("petfeeding://feed/$index")
+                data = Uri.parse("petfeeding://feed/$id")
             }
             var flags = PendingIntent.FLAG_UPDATE_CURRENT
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                flags = flags or PendingIntent.FLAG_IMMUTABLE
+                flags = flags or PendingIntent.FLAG_MUTABLE
             }
-            return PendingIntent.getBroadcast(context, index, intent, flags)
+            val template = PendingIntent.getBroadcast(context, id, feedIntent, flags)
+            views.setPendingIntentTemplate(R.id.w_list, template)
+
+            mgr.updateAppWidget(id, views)
+            mgr.notifyAppWidgetViewDataChanged(id, R.id.w_list)
         }
     }
 }
