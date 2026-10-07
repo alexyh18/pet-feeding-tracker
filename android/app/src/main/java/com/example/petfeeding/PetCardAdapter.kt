@@ -64,6 +64,7 @@ class PetCardAdapter(
     inner class CardVH(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val root = itemView
         private val icon = itemView.findViewById<TextView>(R.id.icon)
+        private val photo = itemView.findViewById<android.widget.ImageView>(R.id.photo)
         private val name = itemView.findViewById<TextView>(R.id.name)
         private val feed = itemView.findViewById<Button>(R.id.feed)
         private val last = itemView.findViewById<TextView>(R.id.last)
@@ -75,7 +76,19 @@ class PetCardAdapter(
         private val delete = itemView.findViewById<TextView>(R.id.delete)
 
         fun bind(pet: FeedingStore.Pet) {
-            icon.text = pet.icon
+            // Show a circular photo when set, otherwise the emoji icon.
+            val bmp = if (pet.hasPhoto())
+                PhotoUtil.loadCircular(pet.photoPath, dpPx(56)) else null
+            if (bmp != null) {
+                photo.setImageBitmap(bmp)
+                photo.visibility = View.VISIBLE
+                icon.visibility = View.INVISIBLE
+            } else {
+                photo.setImageDrawable(null)
+                photo.visibility = View.GONE
+                icon.visibility = View.VISIBLE
+                icon.text = pet.icon
+            }
             name.text = pet.name
             // A small colored dot in the pet's calendar color, to the left of the name.
             name.setTextColor(0xFF5A4A52.toInt())
@@ -97,6 +110,7 @@ class PetCardAdapter(
             delete.visibility = if (callbacks.canDelete()) View.VISIBLE else View.INVISIBLE
 
             icon.setOnClickListener { callbacks.onPickIcon(bindingAdapterPosition) }
+            photo.setOnClickListener { callbacks.onPickIcon(bindingAdapterPosition) }
             feed.setOnClickListener { callbacks.onFeedToggle(bindingAdapterPosition) }
             hist.setOnClickListener { callbacks.onHistory(bindingAdapterPosition) }
             calendar.setOnClickListener { callbacks.onCalendar(bindingAdapterPosition) }
@@ -104,6 +118,8 @@ class PetCardAdapter(
             delete.setOnClickListener { callbacks.onDelete(bindingAdapterPosition) }
             name.setOnClickListener { callbacks.onEditName(bindingAdapterPosition) }
         }
+
+        private fun dpPx(v: Int): Int = (v * itemView.resources.displayMetrics.density).toInt()
 
         private fun makeDot(color: Int): android.graphics.drawable.Drawable {
             val size = (12 * itemView.resources.displayMetrics.density).toInt()

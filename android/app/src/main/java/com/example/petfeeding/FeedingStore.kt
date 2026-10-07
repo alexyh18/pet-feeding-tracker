@@ -57,8 +57,15 @@ object FeedingStore {
         val color: Int,
         /** Time of day the reminder should fire. Defaults to 09:00. */
         val reminderHour: Int = 9,
-        val reminderMinute: Int = 0
+        val reminderMinute: Int = 0,
+        /**
+         * Absolute path to a user-chosen photo stored in app-internal storage, or null
+         * to use the emoji [icon]. When set, the photo represents the pet in the UI.
+         */
+        val photoPath: String? = null
     ) {
+        fun hasPhoto(): Boolean = !photoPath.isNullOrBlank()
+
         fun lastFed(): Long? = history.maxOrNull()
 
         fun fedToday(): Boolean {
@@ -111,7 +118,9 @@ object FeedingStore {
                         o.optInt("color", defaultColor(i)) else defaultColor(i)
                     val rHour = o.optInt("reminderHour", 9).coerceIn(0, 23)
                     val rMin = o.optInt("reminderMinute", 0).coerceIn(0, 59)
-                    pets.add(Pet(name, hist, icon, interval, color, rHour, rMin))
+                    val photo = if (o.isNull("photoPath")) null
+                        else o.optString("photoPath", "").ifBlank { null }
+                    pets.add(Pet(name, hist, icon, interval, color, rHour, rMin, photo))
                 }
             } catch (_: Exception) {
                 pets.clear()
@@ -138,6 +147,7 @@ object FeedingStore {
             o.put("color", p.color)
             o.put("reminderHour", p.reminderHour)
             o.put("reminderMinute", p.reminderMinute)
+            if (p.photoPath != null) o.put("photoPath", p.photoPath)
             arr.put(o)
         }
         prefs(context).edit().putString(KEY_PETS, arr.toString()).apply()
@@ -157,6 +167,7 @@ object FeedingStore {
     fun removePet(context: Context, index: Int) {
         val pets = loadPets(context)
         if (pets.size <= 1 || index !in pets.indices) return
+        pets[index].photoPath?.let { runCatching { java.io.File(it).delete() } }
         pets.removeAt(index)
         savePets(context, pets)
     }
@@ -228,6 +239,16 @@ object FeedingStore {
         val pets = loadPets(context)
         if (index !in pets.indices) return
         pets[index] = pets[index].copy(color = color)
+        savePets(context, pets)
+    }
+
+    fun setPhoto(context: Context, index: Int, path: String?) {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return
+        // Delete a previously stored photo file we no longer reference.
+        val old = pets[index].photoPath
+        if (old != null && old != path) runCatching { java.io.File(old).delete() }
+        pets[index] = pets[index].copy(photoPath = path)
         savePets(context, pets)
     }
 

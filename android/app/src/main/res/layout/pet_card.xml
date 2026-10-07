@@ -27,10 +27,20 @@
             android:paddingVertical="4dp" android:visibility="gone" />
     </LinearLayout>
 
-    <TextView android:id="@+id/icon"
+    <FrameLayout
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="🦎" android:textSize="34sp" android:gravity="center"
-        android:background="?android:attr/selectableItemBackground" android:paddingVertical="2dp" />
+        android:background="?android:attr/selectableItemBackground">
+        <TextView android:id="@+id/icon"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="🦎" android:textSize="34sp" android:gravity="center"
+            android:paddingVertical="2dp" />
+        <ImageView android:id="@+id/photo"
+            android:layout_width="56dp" android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:contentDescription="pet photo" />
+    </FrameLayout>
 
     <TextView android:id="@+id/name"
         android:layout_width="match_parent" android:layout_height="wrap_content"

@@ -35,6 +35,24 @@ class MainActivity : AppCompatActivity() {
     private val requestNotifPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    /** Which pet a just-launched photo pick is for. */
+    private var photoTargetIndex: Int = -1
+
+    private val pickPhoto = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        val index = photoTargetIndex
+        photoTargetIndex = -1
+        if (uri == null || index !in 0 until FeedingStore.petCount(this)) return@registerForActivityResult
+        val path = PhotoUtil.importPhoto(this, uri, index.toString())
+        if (path == null) {
+            android.widget.Toast.makeText(this, "Couldn't load that photo", android.widget.Toast.LENGTH_SHORT).show()
+            return@registerForActivityResult
+        }
+        FeedingStore.setPhoto(this, index, path)
+        syncAll()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -59,6 +77,15 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         petAdapter?.submit(FeedingStore.loadPets(this))
         calendarView?.render()
+    }
+
+    private fun launchPhotoPicker(index: Int) {
+        photoTargetIndex = index
+        pickPhoto.launch(
+            androidx.activity.result.PickVisualMediaRequest(
+                ActivityResultContracts.PickVisualMedia.ImageOnly
+            )
+        )
     }
 
     private fun updateHint(position: Int) {
@@ -101,12 +128,34 @@ class MainActivity : AppCompatActivity() {
 
         override fun onPickIcon(index: Int) {
             if (index == RecyclerView.NO_POSITION) return
-            val labels = FeedingStore.ICON_LABELS.toTypedArray()
+            val pet = FeedingStore.loadPets(this@MainActivity).getOrNull(index) ?: return
+
+            // Species emoji choices, plus "use a photo" and (if set) "remove photo".
+            val options = ArrayList<String>()
+            options.addAll(FeedingStore.ICON_LABELS)
+            val photoOptionIndex = options.size
+            options.add("📷  Use a photo…")
+            val removeOptionIndex = if (pet.hasPhoto()) {
+                options.add("🧹  Remove photo (use emoji)")
+                options.size - 1
+            } else -1
+
             AlertDialog.Builder(this@MainActivity)
-                .setTitle("Choose a species")
-                .setItems(labels) { _, which ->
-                    FeedingStore.setIcon(this@MainActivity, index, FeedingStore.ICON_CHOICES[which])
-                    syncAll()
+                .setTitle("Choose icon or photo")
+                .setItems(options.toTypedArray()) { _, which ->
+                    when (which) {
+                        photoOptionIndex -> launchPhotoPicker(index)
+                        removeOptionIndex -> {
+                            FeedingStore.setPhoto(this@MainActivity, index, null)
+                            syncAll()
+                        }
+                        else -> {
+                            FeedingStore.setIcon(this@MainActivity, index, FeedingStore.ICON_CHOICES[which])
+                            // Picking a species emoji clears any photo so it actually shows.
+                            FeedingStore.setPhoto(this@MainActivity, index, null)
+                            syncAll()
+                        }
+                    }
                 }
                 .setNegativeButton("Cancel", null)
                 .show()

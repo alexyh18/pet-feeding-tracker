@@ -34,7 +34,16 @@ private class PetListFactory(
         if (position !in pets.indices) return row
         val pet = pets[position]
 
-        row.setTextViewText(R.id.w_name, "${pet.icon} ${pet.name}")
+        // When a photo is set, show it (circular) and drop the emoji prefix from the name.
+        val photo = if (pet.hasPhoto()) PhotoUtil.loadCircular(pet.photoPath, 96) else null
+        if (photo != null) {
+            row.setImageViewBitmap(R.id.w_photo, photo)
+            row.setViewVisibility(R.id.w_photo, android.view.View.VISIBLE)
+            row.setTextViewText(R.id.w_name, pet.name)
+        } else {
+            row.setViewVisibility(R.id.w_photo, android.view.View.GONE)
+            row.setTextViewText(R.id.w_name, "${pet.icon} ${pet.name}")
+        }
         row.setTextViewText(R.id.w_status, FeedingStore.formatShort(pet.lastFed()))
         row.setInt(
             R.id.w_row, "setBackgroundResource",
