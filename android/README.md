@@ -16,7 +16,8 @@ A native Android (Kotlin) app to track pet feedings. Start with one pet and add 
 - **Fed Today** visual feedback — card turns soft mint green + a "✓ Fed Today" badge
 - **History** dialog listing all feeding timestamps for a pet
 - **📅 Calendar** view per pet — a month grid that highlights the days it was fed; tap a day to view or cancel a logged feeding
-- **⏰ Reminders** — set a feeding interval (in days) per pet; when a feeding is due you get a notification. Uses battery-friendly inexact alarms (no special permission needed) and re-arms after reboot.
+- **⏰ Reminders** — set a feeding interval (in days) **and the time of day** per pet; when a feeding is due you get a notification at that time. Uses battery-friendly inexact alarms (no special permission needed) and re-arms after reboot.
+- **Edit past records in the calendar** — tap any day to add a feeding (pick the time) or delete logged feedings; in the combined calendar, pick which pet to edit for that day.
 
 ### Home Screen Widgets
 Two widgets are available (long-press home screen → Widgets → "피딩계산기"):

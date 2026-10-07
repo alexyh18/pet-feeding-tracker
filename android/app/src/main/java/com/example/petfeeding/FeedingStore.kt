@@ -54,7 +54,10 @@ object FeedingStore {
         /** Reminder interval in days. 0 = reminders off. */
         val intervalDays: Int,
         /** ARGB color used to represent this pet on the calendar. */
-        val color: Int
+        val color: Int,
+        /** Time of day the reminder should fire. Defaults to 09:00. */
+        val reminderHour: Int = 9,
+        val reminderMinute: Int = 0
     ) {
         fun lastFed(): Long? = history.maxOrNull()
 
@@ -64,13 +67,22 @@ object FeedingStore {
         }
 
         /**
-         * When the next feeding is due, in millis, based on the last feeding and the
-         * interval. null when reminders are off or there is no history yet.
+         * When the next feeding is due, in millis: the configured time-of-day on the
+         * day that is `intervalDays` after the last feeding. null when reminders are off
+         * or there is no history yet.
          */
         fun nextDueMillis(): Long? {
             if (intervalDays <= 0) return null
             val last = lastFed() ?: return null
-            return startOfDay(last) + intervalDays.toLong() * DAY_MS
+            val dueDay = startOfDay(last) + intervalDays.toLong() * DAY_MS
+            val c = Calendar.getInstance().apply {
+                timeInMillis = dueDay
+                set(Calendar.HOUR_OF_DAY, reminderHour)
+                set(Calendar.MINUTE, reminderMinute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            return c.timeInMillis
         }
     }
 
@@ -97,7 +109,9 @@ object FeedingStore {
                     val interval = o.optInt("intervalDays", 0).coerceAtLeast(0)
                     val color = if (o.has("color") && !o.isNull("color"))
                         o.optInt("color", defaultColor(i)) else defaultColor(i)
-                    pets.add(Pet(name, hist, icon, interval, color))
+                    val rHour = o.optInt("reminderHour", 9).coerceIn(0, 23)
+                    val rMin = o.optInt("reminderMinute", 0).coerceIn(0, 59)
+                    pets.add(Pet(name, hist, icon, interval, color, rHour, rMin))
                 }
             } catch (_: Exception) {
                 pets.clear()
@@ -122,6 +136,8 @@ object FeedingStore {
             o.put("icon", p.icon)
             o.put("intervalDays", p.intervalDays)
             o.put("color", p.color)
+            o.put("reminderHour", p.reminderHour)
+            o.put("reminderMinute", p.reminderMinute)
             arr.put(o)
         }
         prefs(context).edit().putString(KEY_PETS, arr.toString()).apply()
@@ -212,6 +228,42 @@ object FeedingStore {
         val pets = loadPets(context)
         if (index !in pets.indices) return
         pets[index] = pets[index].copy(color = color)
+        savePets(context, pets)
+    }
+
+    fun setReminderTime(context: Context, index: Int, hour: Int, minute: Int) {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return
+        pets[index] = pets[index].copy(
+            reminderHour = hour.coerceIn(0, 23),
+            reminderMinute = minute.coerceIn(0, 59)
+        )
+        savePets(context, pets)
+    }
+
+    /**
+     * Add a feeding on a specific day (used when editing past records in the calendar).
+     * Records it at the given hour:minute of that day (defaults to noon so it reads as
+     * a clearly intentional, mid-day entry).
+     */
+    fun addFeedingOnDay(
+        context: Context,
+        index: Int,
+        dayStart: Long,
+        hour: Int = 12,
+        minute: Int = 0
+    ) {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return
+        val c = Calendar.getInstance().apply {
+            timeInMillis = dayStart
+            set(Calendar.HOUR_OF_DAY, hour.coerceIn(0, 23))
+            set(Calendar.MINUTE, minute.coerceIn(0, 59))
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val p = pets[index]
+        pets[index] = p.copy(history = p.history + c.timeInMillis)
         savePets(context, pets)
     }
 

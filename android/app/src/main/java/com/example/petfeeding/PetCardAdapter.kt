@@ -91,7 +91,8 @@ class PetCardAdapter(
                 else feed.context.getString(R.string.feed)
 
             hist.text = "📖"
-            interval.text = if (pet.intervalDays > 0) "Reminder: every ${pet.intervalDays}d"
+            interval.text = if (pet.intervalDays > 0)
+                "Reminder: every ${pet.intervalDays}d at %02d:%02d".format(pet.reminderHour, pet.reminderMinute)
                 else "Reminder: off"
             delete.visibility = if (callbacks.canDelete()) View.VISIBLE else View.INVISIBLE
 

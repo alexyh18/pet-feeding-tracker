@@ -173,61 +173,97 @@ class MonthCalendarView @JvmOverloads constructor(
                 width = size; height = size
                 setMargins(dp(2), dp(2), dp(2), dp(2))
             }
-            if (colors.isNotEmpty()) setOnClickListener { showDay(dayStart) }
+            // Every real day is tappable so past records can be added, not just removed.
+            setOnClickListener { showDay(dayStart) }
         }
     }
 
     private fun showDay(dayStart: Long) {
         val pets = FeedingStore.loadPets(context)
-        val dateLabel = android.text.format.DateFormat.format("yyyy.MM.dd", dayStart)
 
         if (petIndex == ALL) {
-            // Combined view: list which pets were fed and at what times.
-            val lines = mutableListOf<String>()
-            pets.forEach { p ->
-                val times = p.history.filter { FeedingStore.startOfDay(it) == dayStart }
-                    .sortedDescending()
-                if (times.isNotEmpty()) {
-                    lines.add("${p.icon} ${p.name}: " +
-                        times.joinToString(", ") { FeedingStore.formatTime(it) })
-                }
+            // Combined mode: let the user pick which pet to edit for this day.
+            if (pets.size == 1) {
+                editPetDay(0, dayStart)
+            } else {
+                val names = pets.map { p ->
+                    val n = p.history.count { FeedingStore.startOfDay(it) == dayStart }
+                    "${p.icon} ${p.name}" + if (n > 0) "  ($n)" else ""
+                }.toTypedArray()
+                AlertDialog.Builder(context)
+                    .setTitle(android.text.format.DateFormat.format("yyyy.MM.dd", dayStart).toString())
+                    .setItems(names) { _, which -> editPetDay(which, dayStart) }
+                    .setNegativeButton("Close", null)
+                    .show()
             }
-            AlertDialog.Builder(context)
-                .setTitle("Feedings on $dateLabel")
-                .setMessage(if (lines.isEmpty()) "No feedings." else lines.joinToString("\n"))
-                .setPositiveButton("Close", null)
-                .show()
             return
         }
 
-        val idx = petIndex.coerceIn(0, pets.size - 1)
-        val entries = pets[idx].history
+        editPetDay(petIndex.coerceIn(0, pets.size - 1), dayStart)
+    }
+
+    /** Edit (add/remove) one pet's feedings on a given day. */
+    private fun editPetDay(idx: Int, dayStart: Long) {
+        val pets = FeedingStore.loadPets(context)
+        if (idx !in pets.indices) return
+        val pet = pets[idx]
+        val dateLabel = android.text.format.DateFormat.format("yyyy.MM.dd", dayStart)
+
+        val entries = pet.history
             .filter { FeedingStore.startOfDay(it) == dayStart }
             .sortedDescending()
-        if (entries.isEmpty()) return
 
-        val labels = entries.map { FeedingStore.formatFull(it) }.toTypedArray()
+        // List existing feeding times (tap to delete) plus an "add" action.
+        val items = entries.map { "🗑  " + FeedingStore.formatFull(it) }.toMutableList()
+        items.add("➕  Add a feeding")
+
         AlertDialog.Builder(context)
-            .setTitle("Feedings on $dateLabel")
-            .setItems(labels) { _, which -> confirmDelete(idx, entries[which]) }
-            .setPositiveButton("Close", null)
+            .setTitle("${pet.icon} ${pet.name} · $dateLabel")
+            .setItems(items.toTypedArray()) { _, which ->
+                if (which < entries.size) {
+                    confirmDelete(idx, entries[which], dayStart)
+                } else {
+                    addFeeding(idx, dayStart)
+                }
+            }
+            .setNegativeButton("Close", null)
             .show()
     }
 
-    private fun confirmDelete(idx: Int, ts: Long) {
+    private fun addFeeding(idx: Int, dayStart: Long) {
+        val now = Calendar.getInstance()
+        // Default the picker to the current time; the chosen time is applied to that day.
+        android.app.TimePickerDialog(
+            context,
+            { _, h, m ->
+                FeedingStore.addFeedingOnDay(context, idx, dayStart, h, m)
+                afterEdit()
+                // Re-open the day so the user can add several or see the result.
+                editPetDay(idx, dayStart)
+            },
+            now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true
+        ).show()
+    }
+
+    private fun confirmDelete(idx: Int, ts: Long, dayStart: Long) {
         AlertDialog.Builder(context)
-            .setTitle("Cancel this feeding?")
+            .setTitle("Delete this feeding?")
             .setMessage(FeedingStore.formatFull(ts))
             .setPositiveButton("Delete") { _, _ ->
                 FeedingStore.removeFeeding(context, idx, ts)
-                PetFeedingWidget.refreshAll(context)
-                CalendarWidget.refreshAll(context)
-                ReminderScheduler.scheduleNext(context)
-                render()
-                onChanged?.invoke()
+                afterEdit()
+                editPetDay(idx, dayStart)
             }
             .setNegativeButton("Keep", null)
             .show()
+    }
+
+    private fun afterEdit() {
+        PetFeedingWidget.refreshAll(context)
+        CalendarWidget.refreshAll(context)
+        ReminderScheduler.scheduleNext(context)
+        render()
+        onChanged?.invoke()
     }
 
     companion object {

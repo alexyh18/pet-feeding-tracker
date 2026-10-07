@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -157,19 +158,53 @@ class MainActivity : AppCompatActivity() {
         override fun onSettings(index: Int) {
             if (index == RecyclerView.NO_POSITION) return
             val pet = FeedingStore.loadPets(this@MainActivity).getOrNull(index) ?: return
+
+            // Holds the time the user picks; starts from the pet's current reminder time.
+            val pickedHour = intArrayOf(pet.reminderHour)
+            val pickedMinute = intArrayOf(pet.reminderMinute)
+
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            val container = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(pad * 2, pad, pad * 2, 0)
+            }
+
             val input = EditText(this@MainActivity).apply {
                 inputType = InputType.TYPE_CLASS_NUMBER
                 hint = "Days between feedings (0 = off)"
                 setText(if (pet.intervalDays > 0) pet.intervalDays.toString() else "")
-                setPadding(48, 32, 48, 32)
             }
+            container.addView(input)
+
+            fun timeLabel(h: Int, m: Int) =
+                "⏰ Reminder time: %02d:%02d  (tap to change)".format(h, m)
+
+            val timeButton = Button(this@MainActivity).apply {
+                text = timeLabel(pickedHour[0], pickedMinute[0])
+                setOnClickListener {
+                    android.app.TimePickerDialog(
+                        this@MainActivity,
+                        { _, h, m ->
+                            pickedHour[0] = h
+                            pickedMinute[0] = m
+                            text = timeLabel(h, m)
+                        },
+                        pickedHour[0], pickedMinute[0], true
+                    ).show()
+                }
+            }
+            container.addView(timeButton)
+
             AlertDialog.Builder(this@MainActivity)
                 .setTitle("Reminder for ${pet.name}")
-                .setMessage("How many days between feedings? You'll get a notification when it's due. Enter 0 to turn reminders off.")
-                .setView(input)
+                .setMessage("Days between feedings (0 = off), and what time to be reminded.")
+                .setView(container)
                 .setPositiveButton("Save") { _, _ ->
                     val days = input.text.toString().toIntOrNull() ?: 0
                     FeedingStore.setInterval(this@MainActivity, index, days)
+                    FeedingStore.setReminderTime(
+                        this@MainActivity, index, pickedHour[0], pickedMinute[0]
+                    )
                     ReminderScheduler.scheduleNext(this@MainActivity)
                     refreshPets()
                 }
