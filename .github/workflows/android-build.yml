@@ -70,7 +70,8 @@ jobs:
           echo "apksigner: $APKSIGNER"
           APK_FP=$("$APKSIGNER" verify --print-certs "$APK" | grep -i "SHA-256 digest" | head -1 | tr 'a-f' 'A-F' | grep -oE '[0-9A-F]{64}')
           KS_FP=$(keytool -list -v -keystore app/petfeeding-release.keystore -storepass petfeeding123 \
-                  | grep "SHA256:" | head -1 | tr -d ' \t:' | tr 'a-f' 'A-F' | grep -oE '[0-9A-F]{64}')
+                  | grep "SHA256:" | head -1 \
+                  | grep -oiE '([0-9A-F]{2}:){31}[0-9A-F]{2}' | tr -d ':' | tr 'a-f' 'A-F')
           echo "APK cert   SHA-256: $APK_FP"
           echo "keystore   SHA-256: $KS_FP"
           if [ "$APK_FP" = "$KS_FP" ]; then
