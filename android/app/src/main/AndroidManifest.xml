@@ -31,6 +31,11 @@
             android:exported="false"
             android:theme="@style/Theme.PetFeeding" />
 
+        <activity
+            android:name=".WeightActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PetFeeding" />
+
         <!-- Home screen widget: list of pets with Feed buttons -->
         <receiver
             android:name=".PetFeedingWidget"

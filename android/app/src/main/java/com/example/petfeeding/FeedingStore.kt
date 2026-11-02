@@ -62,9 +62,20 @@ object FeedingStore {
          * Absolute path to a user-chosen photo stored in app-internal storage, or null
          * to use the emoji [icon]. When set, the photo represents the pet in the UI.
          */
-        val photoPath: String? = null
+        val photoPath: String? = null,
+        /**
+         * Daily weight log: day-start millis -> weight in grams. One entry per day
+         * (re-entering a day overwrites it). Used for the weight graph.
+         */
+        val weights: Map<Long, Double> = emptyMap()
     ) {
         fun hasPhoto(): Boolean = !photoPath.isNullOrBlank()
+
+        /** Weight entries sorted by day ascending. */
+        fun weightSeries(): List<Pair<Long, Double>> =
+            weights.entries.sortedBy { it.key }.map { it.key to it.value }
+
+        fun latestWeight(): Double? = weightSeries().lastOrNull()?.second
 
         fun lastFed(): Long? = history.maxOrNull()
 
@@ -120,7 +131,16 @@ object FeedingStore {
                     val rMin = o.optInt("reminderMinute", 0).coerceIn(0, 59)
                     val photo = if (o.isNull("photoPath")) null
                         else o.optString("photoPath", "").ifBlank { null }
-                    pets.add(Pet(name, hist, icon, interval, color, rHour, rMin, photo))
+                    val weights = HashMap<Long, Double>()
+                    o.optJSONArray("weights")?.let { wArr ->
+                        for (k in 0 until wArr.length()) {
+                            val w = wArr.optJSONObject(k) ?: continue
+                            val day = w.optLong("day", 0L)
+                            val grams = w.optDouble("grams", Double.NaN)
+                            if (day > 0 && !grams.isNaN()) weights[day] = grams
+                        }
+                    }
+                    pets.add(Pet(name, hist, icon, interval, color, rHour, rMin, photo, weights))
                 }
             } catch (_: Exception) {
                 pets.clear()
@@ -148,6 +168,13 @@ object FeedingStore {
             o.put("reminderHour", p.reminderHour)
             o.put("reminderMinute", p.reminderMinute)
             if (p.photoPath != null) o.put("photoPath", p.photoPath)
+            if (p.weights.isNotEmpty()) {
+                val wArr = JSONArray()
+                p.weights.forEach { (day, grams) ->
+                    wArr.put(JSONObject().put("day", day).put("grams", grams))
+                }
+                o.put("weights", wArr)
+            }
             arr.put(o)
         }
         prefs(context).edit().putString(KEY_PETS, arr.toString()).apply()
@@ -249,6 +276,26 @@ object FeedingStore {
         val old = pets[index].photoPath
         if (old != null && old != path) runCatching { java.io.File(old).delete() }
         pets[index] = pets[index].copy(photoPath = path)
+        savePets(context, pets)
+    }
+
+    /** Set (or overwrite) the weight in grams for a given day. */
+    fun setWeight(context: Context, index: Int, dayStart: Long, grams: Double) {
+        val pets = loadPets(context)
+        if (index !in pets.indices || grams <= 0.0) return
+        val m = HashMap(pets[index].weights)
+        m[startOfDay(dayStart)] = grams
+        pets[index] = pets[index].copy(weights = m)
+        savePets(context, pets)
+    }
+
+    /** Remove the weight entry for a given day, if any. */
+    fun removeWeight(context: Context, index: Int, dayStart: Long) {
+        val pets = loadPets(context)
+        if (index !in pets.indices) return
+        val m = HashMap(pets[index].weights)
+        m.remove(startOfDay(dayStart))
+        pets[index] = pets[index].copy(weights = m)
         savePets(context, pets)
     }
 

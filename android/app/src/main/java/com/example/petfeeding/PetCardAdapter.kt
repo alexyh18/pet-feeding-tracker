@@ -23,6 +23,7 @@ class PetCardAdapter(
         fun onHistory(index: Int)
         fun onCalendar(index: Int)
         fun onSettings(index: Int)
+        fun onWeight(index: Int)
         fun onDelete(index: Int)
         fun canDelete(): Boolean
     }
@@ -73,6 +74,7 @@ class PetCardAdapter(
         private val hist = itemView.findViewById<Button>(R.id.hist)
         private val calendar = itemView.findViewById<Button>(R.id.calendar)
         private val settings = itemView.findViewById<Button>(R.id.settings)
+        private val weight = itemView.findViewById<Button>(R.id.weight)
         private val delete = itemView.findViewById<TextView>(R.id.delete)
 
         fun bind(pet: FeedingStore.Pet) {
@@ -115,6 +117,7 @@ class PetCardAdapter(
             hist.setOnClickListener { callbacks.onHistory(bindingAdapterPosition) }
             calendar.setOnClickListener { callbacks.onCalendar(bindingAdapterPosition) }
             settings.setOnClickListener { callbacks.onSettings(bindingAdapterPosition) }
+            weight.setOnClickListener { callbacks.onWeight(bindingAdapterPosition) }
             delete.setOnClickListener { callbacks.onDelete(bindingAdapterPosition) }
             name.setOnClickListener { callbacks.onEditName(bindingAdapterPosition) }
         }

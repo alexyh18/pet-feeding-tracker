@@ -204,6 +204,13 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
+        override fun onWeight(index: Int) {
+            if (index == RecyclerView.NO_POSITION) return
+            startActivity(Intent(this@MainActivity, WeightActivity::class.java).apply {
+                putExtra(WeightActivity.EXTRA_PET_INDEX, index)
+            })
+        }
+
         override fun onSettings(index: Int) {
             if (index == RecyclerView.NO_POSITION) return
             val pet = FeedingStore.loadPets(this@MainActivity).getOrNull(index) ?: return
