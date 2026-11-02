@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">피딩계산기</string>
+    <string name="header">🦎 피딩계산기</string>
+    <string name="widget_title">🦎 피딩계산기</string>
+    <string name="feed">🍽️ Feed</string>
+    <string name="fed_today">✓ Fed Today</string>
+</resources>
