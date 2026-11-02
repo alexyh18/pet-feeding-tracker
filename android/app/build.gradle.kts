@@ -11,12 +11,29 @@ android {
         applicationId = "com.example.petfeeding"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
+    }
+
+    // A fixed signing key committed to the repo so every build (CI debug APKs
+    // included) is signed with the SAME certificate. That lets a new APK install
+    // OVER an existing one as an update, preserving all saved data, instead of
+    // forcing an uninstall+reinstall that would wipe it.
+    signingConfigs {
+        create("shared") {
+            storeFile = file("petfeeding-release.keystore")
+            storePassword = "petfeeding123"
+            keyAlias = "petfeeding"
+            keyPassword = "petfeeding123"
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("shared")
+        }
         release {
+            signingConfig = signingConfigs.getByName("shared")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

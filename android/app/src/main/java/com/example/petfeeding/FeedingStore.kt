@@ -113,9 +113,10 @@ object FeedingStore {
         val raw = prefs(context).getString(KEY_PETS, null)
         val pets = mutableListOf<Pet>()
         if (raw != null) {
-            try {
-                val arr = JSONArray(raw)
-                for (i in 0 until minOf(arr.length(), MAX_PETS)) {
+            // Parse each pet independently so one corrupt entry can't wipe the rest.
+            val arr = try { JSONArray(raw) } catch (_: Exception) { JSONArray() }
+            for (i in 0 until minOf(arr.length(), MAX_PETS)) {
+                try {
                     val o = arr.getJSONObject(i)
                     val name = (if (o.isNull("name")) "" else o.optString("name", ""))
                         .ifBlank { defaultName(i) }
@@ -141,9 +142,9 @@ object FeedingStore {
                         }
                     }
                     pets.add(Pet(name, hist, icon, interval, color, rHour, rMin, photo, weights))
+                } catch (_: Exception) {
+                    // Skip just this malformed pet; keep the others.
                 }
-            } catch (_: Exception) {
-                pets.clear()
             }
         }
         // Always keep at least one pet.

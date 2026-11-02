@@ -35,8 +35,17 @@ Two widgets are available (long-press home screen → Widgets → "피딩계산�
 - The widget and the app share the same data, so changes in one appear in the other
 
 ## Data & Persistence
-- Stored in `SharedPreferences` as JSON (`FeedingStore`), shared between the Activity and the `AppWidgetProvider`
-- Survives app close and device reboot
+- Stored in `SharedPreferences` as JSON (`FeedingStore`), shared between the Activity and the widgets; photos live in app-internal storage.
+- Survives app close and device reboot.
+- **Schema is backward/forward compatible** — new fields (color, reminder time, photo, weights…) are read with defaults, and each pet is parsed independently, so an older save loads cleanly and one bad entry can't wipe the rest.
+
+## Updating without losing data
+The app is signed with a **fixed key committed to the repo** (`app/petfeeding-release.keystore`), and the CI build uses it for every APK. Because the signature stays the same, a newer APK installs **over** the existing app as an update and **keeps all your data** (pets, feedings, weights, photos, settings). `versionCode` is bumped on each release so Android treats it as an upgrade.
+
+Notes:
+- Just install the new APK on top of the old one — do **not** uninstall first (uninstalling always deletes app data).
+- One-time caveat: if you already installed an *earlier* build that was signed with a different (random) key, Android will refuse to install over it. For that single transition you must uninstall once; from then on updates preserve data.
+- This is a debug/distribution key for convenience; for Google Play you'd use your own private keystore (kept out of source control).
 
 ## Build & Install
 
